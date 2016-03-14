@@ -10,6 +10,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+
+        <provider android:name=".StationContentProvider" android:exported="true"
+            android:readPermission="true" android:writePermission="true"
+            android:authorities="com.skn.ham" />
+
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

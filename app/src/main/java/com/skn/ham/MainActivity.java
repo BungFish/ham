@@ -1,13 +1,16 @@
 package com.skn.ham;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.v7.app.AppCompatActivity;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
-import com.skn.ham.data.model.GasStation;
 import com.skn.ham.network.APIRequester;
 import com.skn.ham.network.constants.APIKeyStore;
 
@@ -22,6 +25,37 @@ public class MainActivity extends AppCompatActivity {
     private static final String LOG_TAG = MainActivity.class.getSimpleName();
     private GasStationDBHelper helper;
     private SQLiteDatabase db;
+    private static final int GAS_STATION_LOADER_ID = 1;
+
+    private LoaderManager.LoaderCallbacks<Cursor> mLoaderCallbacks = new LoaderManager.LoaderCallbacks<Cursor>() {
+
+        @Override
+        public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+            Uri gasStationUri = StationContentProvider.CONTENT_URI;
+
+            return new CursorLoader(getApplicationContext(), gasStationUri, null, null, null, null);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+            if(data != null){
+                data.moveToFirst(); // 질문1
+                    do {
+
+                        GasStation station = ModelHelper.getStationFromCursor(data);
+
+                        Log.i(LOG_TAG, "주유소 목록 : " + station.getName() + "셀프/편의점/직영점/세차/정비소" + " : " + station.getSelfYN() + "/" + station.getConvstoreYN() + "/" + station.getDirectYN() + "/" + station.getWashYN() + "/" + station.getRepairYN());
+
+                    } while (data.moveToNext());
+            }
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Cursor> loader) {
+
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         JSONObject fields = new JSONObject();
 
         try {
-            fields.put(APIKeyStore.APP_INIT_REQ_OS_GBN, "A");
+            fields.put(APIKeyStore.APP_INIT_REQ_OS_GBN, "A"); //왜 A?
             fields.put(APIKeyStore.APP_INIT_REQ_UPD_DATE, AppManager.getInstance(this).getAccessTime());
         } catch (JSONException e) {
             e.printStackTrace();
@@ -60,8 +94,10 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(LOG_TAG, "초기구동 응답 : " + object.toString());
                         JSONObject json = (JSONObject) object;
 
-//                        updateDB(json);
+                        updateDB(json);
                         updateVersion(json);
+
+                        getLoaderManager().initLoader(GAS_STATION_LOADER_ID, null, mLoaderCallbacks);
                     }
                 }
 
@@ -145,7 +181,8 @@ public class MainActivity extends AppCompatActivity {
                     contentValuesList.toArray(valuesArr);
 
                     //주유소 Insert
-                    bulkInsert(valuesArr);
+//                    bulkInsert(valuesArr);
+                    getContentResolver().bulkInsert(StationContentProvider.CONTENT_URI, valuesArr);
                 }
             }
 
@@ -153,13 +190,29 @@ public class MainActivity extends AppCompatActivity {
             if (stationExceptedList.length() > 0) {
 
                 //주유소 Delete
-
+                deleteStations(stationExceptedList);
             }
 
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void deleteStations(JSONArray removeList) {
+
+        for (int i = 0; i < removeList.length(); i++) {
+
+            try {
+                JSONObject stationJson = removeList.getJSONObject(i);
+                Log.i(LOG_TAG, stationJson.getString(APIKeyStore.STATION_LIST_RESP_NM) + "이 제거됨");
+                String seq = stationJson.getString(APIKeyStore.STATION_LIST_RESP_SEQ);
+                getContentResolver().delete(StationContentProvider.CONTENT_URI, GasStationContract.COLUMN_SEQ + " = ?", new String[]{seq});
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public int bulkInsert(ContentValues[] values){

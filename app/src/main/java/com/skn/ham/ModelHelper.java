@@ -1,19 +1,13 @@
 package com.skn.ham;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
 
-import com.skn.ham.data.model.GasStation;
 import com.skn.ham.network.constants.APIKeyStore;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.Collections;
 
 public class ModelHelper {
 

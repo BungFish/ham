@@ -1,4 +1,4 @@
-package com.skn.ham.data.model;
+package com.skn.ham;
 
 import android.os.Parcel;
 import android.os.Parcelable;
