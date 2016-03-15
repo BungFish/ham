@@ -11,6 +11,7 @@ public class AppManager {
     private static SharedPreferences sharedPreferences;
     private static final String ACCESS_TIME = "accessTime";
     private static final String APP_VERSION = "appVersion";
+    private static final String USER_ACCESS_TOKEN = "accessToken";
     private static AppManager ourInstance;
     private static Context mContext;
 
@@ -105,6 +106,16 @@ public class AppManager {
 
             return VersionCheckResult.INVALID;
         }
+    }
+
+    public void setToken(String token) {
+
+        sharedPreferences.edit().putString(USER_ACCESS_TOKEN, token).commit();
+    }
+
+    public String getToken() {
+
+        return sharedPreferences.getString(USER_ACCESS_TOKEN, "");
     }
 
 }

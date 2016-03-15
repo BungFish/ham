@@ -7,6 +7,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
+import android.util.Log;
 
 /**
  * Created by Young-Jin on 2016-03-14.
@@ -203,7 +204,22 @@ public class StationContentProvider extends ContentProvider {
 //        getContext().getContentResolver().notifyChange(uri, null);
 //        return updateCount;
 
-        throw new IllegalArgumentException("Unsupported URI: " + uri);
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        int rowUpdated = 0;
+
+        switch (uriMatcher.match(uri)) {
+
+            case ALL_STATION: {
+
+                rowUpdated = db.update(GasStationContract.TABLE_NAME, values, selection, selectionArgs);
+                getContext().getContentResolver().notifyChange(uri, null);
+                return rowUpdated;
+
+            }
+            default:
+                throw new IllegalArgumentException("Unsupported URI: " + uri);
+        }
+
     }
 
 }

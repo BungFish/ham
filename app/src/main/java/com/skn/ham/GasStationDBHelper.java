@@ -11,14 +11,16 @@ public class GasStationDBHelper extends SQLiteOpenHelper {
 
     private static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "station.db";
+    private final Context mContext;
 
-    public GasStationDBHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    public GasStationDBHelper(Context mContext) {
+        super(mContext, DATABASE_NAME, null, DATABASE_VERSION);
+        this.mContext = mContext;
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        String sql =  "CREATE TABLE " + GasStationContract.TABLE_NAME + " (" +
+        String sql = "CREATE TABLE " + GasStationContract.TABLE_NAME + " (" +
                 GasStationContract.COLUMN_SEQ + " INTEGER PRIMARY KEY," +
                 GasStationContract.COLUMN_ADDR + " TEXT NOT NULL," +
                 GasStationContract.COLUMN_LOC_LAT + " REAL NOT NULL," +
@@ -48,6 +50,8 @@ public class GasStationDBHelper extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         String sql = "drop table if exists " + GasStationContract.TABLE_NAME;
         db.execSQL(sql);
+
+        AppManager.getInstance(mContext).setAccessTime("");
 
         onCreate(db);
     }

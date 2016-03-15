@@ -31,16 +31,17 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-            Uri gasStationUri = StationContentProvider.CONTENT_URI;
 
-            return new CursorLoader(getApplicationContext(), gasStationUri, null, null, null, null);
+            return new CursorLoader(getApplicationContext(), StationContentProvider.CONTENT_URI, null, null, null, null);
         }
 
         @Override
         public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
 
             if(data != null){
-                data.moveToFirst(); // 질문1
+
+                if(data.moveToFirst()) {
+
                     do {
 
                         GasStation station = ModelHelper.getStationFromCursor(data);
@@ -48,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
                         Log.i(LOG_TAG, "주유소 목록 : " + station.getName() + "셀프/편의점/직영점/세차/정비소" + " : " + station.getSelfYN() + "/" + station.getConvstoreYN() + "/" + station.getDirectYN() + "/" + station.getWashYN() + "/" + station.getRepairYN());
 
                     } while (data.moveToNext());
+                }
             }
         }
 
@@ -67,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
         JSONObject fields = new JSONObject();
 
         try {
-            fields.put(APIKeyStore.APP_INIT_REQ_OS_GBN, "A"); //왜 A?
+            fields.put(APIKeyStore.APP_INIT_REQ_OS_GBN, "A");
             fields.put(APIKeyStore.APP_INIT_REQ_UPD_DATE, AppManager.getInstance(this).getAccessTime());
         } catch (JSONException e) {
             e.printStackTrace();
@@ -153,7 +155,6 @@ public class MainActivity extends AppCompatActivity {
             JSONObject user_arr_shop = recordSets.getJSONObject(APIKeyStore.STATION_LIST_RESP_USER_ARR_SHOP);
             JSONObject arr_shop = recordSets.getJSONObject(APIKeyStore.STATION_LIST_RESP_ARR_SHOP);
             JSONObject arr_except_shop = recordSets.getJSONObject(APIKeyStore.STATION_LIST_RESP_ARR_SHOP_EXCEPT);
-
             JSONArray stationList = arr_shop.getJSONArray(APIKeyStore.COMMON_RESP_LIST);
             JSONArray stationExceptedList = arr_except_shop.getJSONArray(APIKeyStore.COMMON_RESP_LIST);
 
@@ -229,6 +230,7 @@ public class MainActivity extends AppCompatActivity {
                 long id = db.insertWithOnConflict(GasStationContract.TABLE_NAME, null, value, SQLiteDatabase.CONFLICT_REPLACE);
                 if (id != -1) returnCount++;
             }
+
             db.setTransactionSuccessful();
         } finally {
             db.endTransaction();
